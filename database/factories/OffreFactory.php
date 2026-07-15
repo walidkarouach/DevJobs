@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Offre;
+use App\Models\Entreprise;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,7 +18,15 @@ class OffreFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'entreprise_id' => Entreprise::factory(),
+            'titre' => fake()->jobTitle(),
+            'description' => fake()->paragraph(4),
+            'type_contrat' => fake()->randomElement([
+                'CDI',
+                'CDD',
+                'Stage',
+                'Freelance'
+            ])
         ];
     }
 }

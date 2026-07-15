@@ -18,7 +18,18 @@ class CompetenceFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'nom' => fake()->unique()->randomElement([
+                'PHP',
+                'Laravel',
+                'JavaScript',
+                'React',
+                'VueJS',
+                'NodeJS',
+                'MySQL',
+                'Docker',
+                'Git',
+                'Tailwind CSS'
+            ])
         ];
     }
 }

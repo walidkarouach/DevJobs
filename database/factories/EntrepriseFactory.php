@@ -18,7 +18,20 @@ class EntrepriseFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'user_id' => User::factory()->state([
+                'role' => 'entreprise'
+            ]),
+
+            'nom' => fake()->company(),
+            'secteur' => fake()->randomElement([
+                'Informatique',
+                'Finance',
+                'Marketing',
+                'Santé',
+                'Industrie'
+            ]),
+            'description' => fake()->paragraph(),
+            'logo' => 'logo.png',
         ];
     }
 }

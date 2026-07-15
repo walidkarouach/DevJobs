@@ -2,7 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\Candidature;
+use App\Models\User;
+use App\Models\Offre;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,7 +19,17 @@ class CandidatureFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'user_id' => User::factory()->state([
+                'role' => 'candidate'
+            ]),
+
+            'offre_id' => Offre::factory(),
+
+            'statut' => fake()->randomElement([
+                'en_attente',
+                'acceptee',
+                'refusee'
+            ])
         ];
     }
 }
