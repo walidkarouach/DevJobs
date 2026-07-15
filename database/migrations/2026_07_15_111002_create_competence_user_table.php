@@ -11,27 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('candidatures', function (Blueprint $table) {
-
-            $table->id();
+        Schema::create('competence_user', function (Blueprint $table) {
 
             $table->foreignId('user_id')
                 ->constrained()
                 ->cascadeOnDelete();
 
-            $table->foreignId('offre_id')
+            $table->foreignId('competence_id')
                 ->constrained()
                 ->cascadeOnDelete();
 
-            $table->enum('statut', [
-                'en_attente',
-                'acceptee',
-                'refusee'
-            ])->default('en_attente');
-
-            $table->timestamps();
-
-            $table->unique(['user_id','offre_id']);
+            $table->primary(['user_id','competence_id']);
         });
     }
 
@@ -40,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('candidatures');
+        Schema::dropIfExists('competence_user');
     }
 };
