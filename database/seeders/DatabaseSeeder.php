@@ -28,5 +28,7 @@ class DatabaseSeeder extends Seeder
             OffreSeeder::class,
             CandidatureSeeder::class,
         ]);
+
+        $this->call(AdminSeeder::class);
     }
 }

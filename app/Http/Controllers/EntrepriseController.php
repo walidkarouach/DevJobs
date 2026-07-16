@@ -3,63 +3,78 @@
 namespace App\Http\Controllers;
 
 use App\Models\Entreprise;
+use App\Http\Requests\EntrepriseRequest;
 use Illuminate\Http\Request;
 
 class EntrepriseController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Afficher toutes les entreprises
     public function index()
     {
-        //
+        return response()->json(Entreprise::with('user')->get());
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    // Afficher une entreprise
+    public function show($id)
     {
-        //
+        return response()->json(
+            Entreprise::with('user')->findOrFail($id)
+        );
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    // Créer un profil entreprise
+    public function store(EntrepriseRequest $request)
     {
-        //
+        $entreprise = Entreprise::create([
+            'user_id' => auth()->id(),
+            'nom' => $request->nom,
+            'secteur' => $request->secteur,
+            'description' => $request->description,
+            'logo' => $request->logo,
+        ]);
+
+        return response()->json([
+            'message' => 'Entreprise créée avec succès.',
+            'entreprise' => $entreprise
+        ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Entreprise $entreprise)
+    // Modifier
+    public function update(EntrepriseRequest $request, Entreprise $entreprise)
     {
-        //
+        if (
+            auth()->user()->role !== 'admin' &&
+            auth()->id() !== $entreprise->user_id
+        ) {
+            return response()->json([
+                'message' => 'Accès refusé.'
+            ], 403);
+        }
+
+        $entreprise->update($request->validated());
+
+        return response()->json([
+            'message' => 'Entreprise modifiée.',
+            'entreprise' => $entreprise
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Entreprise $entreprise)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Entreprise $entreprise)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
+    // Supprimer
     public function destroy(Entreprise $entreprise)
     {
-        //
+        if (
+            auth()->user()->role !== 'admin' &&
+            auth()->id() !== $entreprise->user_id
+        ) {
+            return response()->json([
+                'message' => 'Accès refusé.'
+            ], 403);
+        }
+
+        $entreprise->delete();
+
+        return response()->json([
+            'message' => 'Entreprise supprimée.'
+        ]);
     }
 }
