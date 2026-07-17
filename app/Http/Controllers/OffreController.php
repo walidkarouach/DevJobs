@@ -12,7 +12,7 @@ class OffreController extends Controller
     public function index()
     {
         return response()->json(
-            Offre::with('entreprise')->get()
+            Offre::with('entreprise')->latest()->paginate(10)
         );
     }
 
@@ -60,7 +60,11 @@ class OffreController extends Controller
             ], 403);
         }
 
-        $offre->update($request->validated());
+        $offre->update([
+            'titre' => $request->titre,
+            'description' => $request->description,
+            'type_contrat' => $request->type_contrat,
+        ]);
 
         return response()->json([
             'message' => 'Offre modifiée.',

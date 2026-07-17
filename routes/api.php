@@ -57,11 +57,9 @@ Route::middleware(['auth:sanctum','role:admin'])->group(function () {
 
 Route::middleware('auth:sanctum')->group(function () {
 
-    // Public pour les utilisateurs connectés
     Route::get('/offres', [OffreController::class, 'index']);
     Route::get('/offres/{offre}', [OffreController::class, 'show']);
 
-    // Entreprise ou Admin
     Route::middleware('role:entreprise,admin')->group(function () {
 
         Route::post('/offres', [OffreController::class, 'store']);
