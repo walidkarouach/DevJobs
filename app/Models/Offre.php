@@ -7,13 +7,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Offre extends Model
 {
-        use HasFactory;
+    use HasFactory;
 
     protected $fillable = [
         'entreprise_id',
         'titre',
         'description',
-        'type_contrat'
+        'type_contrat',
     ];
 
     public function entreprise()

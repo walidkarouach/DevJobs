@@ -3,63 +3,87 @@
 namespace App\Http\Controllers;
 
 use App\Models\Offre;
-use Illuminate\Http\Request;
+use App\Models\Entreprise;
+use App\Http\Requests\OffreRequest;
 
 class OffreController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Liste des offres
     public function index()
     {
-        //
+        return response()->json(
+            Offre::with('entreprise')->get()
+        );
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
+    // Une offre
     public function show(Offre $offre)
     {
-        //
+        return response()->json(
+            $offre->load('entreprise')
+        );
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Offre $offre)
+    // Ajouter
+    public function store(OffreRequest $request)
     {
-        //
+        $entreprise = Entreprise::where('user_id', auth()->id())->first();
+
+        if (!$entreprise) {
+            return response()->json([
+                'message' => 'Vous devez créer votre profil entreprise.'
+            ], 404);
+        }
+
+        $offre = Offre::create([
+            'entreprise_id' => $entreprise->id,
+            'titre' => $request->titre,
+            'description' => $request->description,
+            'type_contrat' => $request->type_contrat,
+        ]);
+
+        return response()->json([
+            'message' => 'Offre créée avec succès.',
+            'offre' => $offre
+        ], 201);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Offre $offre)
+    // Modifier
+    public function update(OffreRequest $request, Offre $offre)
     {
-        //
+        if (
+            auth()->user()->role !== 'admin' &&
+            $offre->entreprise->user_id != auth()->id()
+        ) {
+            return response()->json([
+                'message' => 'Accès refusé.'
+            ], 403);
+        }
+
+        $offre->update($request->validated());
+
+        return response()->json([
+            'message' => 'Offre modifiée.',
+            'offre' => $offre
+        ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    // Supprimer
     public function destroy(Offre $offre)
     {
-        //
+        if (
+            auth()->user()->role !== 'admin' &&
+            $offre->entreprise->user_id != auth()->id()
+        ) {
+            return response()->json([
+                'message' => 'Accès refusé.'
+            ], 403);
+        }
+
+        $offre->delete();
+
+        return response()->json([
+            'message' => 'Offre supprimée.'
+        ]);
     }
 }

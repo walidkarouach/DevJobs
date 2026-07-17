@@ -15,10 +15,10 @@ class EntrepriseController extends Controller
     }
 
     // Afficher une entreprise
-    public function show($id)
+    public function show(Entreprise $entreprise)
     {
         return response()->json(
-            Entreprise::with('user')->findOrFail($id)
+            $entreprise->load('user')
         );
     }
 

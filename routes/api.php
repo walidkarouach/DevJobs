@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EntrepriseController;
 use App\Http\Controllers\CompetenceController;
+use App\Http\Controllers\OffreController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -51,5 +52,22 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware(['auth:sanctum','role:admin'])->group(function () {
 
     Route::apiResource('competences', CompetenceController::class);
+
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+
+    // Public pour les utilisateurs connectés
+    Route::get('/offres', [OffreController::class, 'index']);
+    Route::get('/offres/{offre}', [OffreController::class, 'show']);
+
+    // Entreprise ou Admin
+    Route::middleware('role:entreprise,admin')->group(function () {
+
+        Route::post('/offres', [OffreController::class, 'store']);
+        Route::put('/offres/{offre}', [OffreController::class, 'update']);
+        Route::delete('/offres/{offre}', [OffreController::class, 'destroy']);
+
+    });
 
 });
