@@ -16,7 +16,9 @@ class OffreRequest extends FormRequest
         return [
             'titre' => 'required|string|max:255',
             'description' => 'required|string',
-            'type_contrat' => 'required|in:CDI,CDD,Stage,Freelance',
+            'type_contrat' => 'required|string|max:100',
+            'competences' => 'nullable|array',
+            'competences.*' => 'integer|exists:competences,id',
         ];
     }
 }

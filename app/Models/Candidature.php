@@ -3,18 +3,21 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Candidature extends Model
 {
+        use HasFactory;
+
     protected $fillable = [
-        'candidat_id',
+        'user_id',
         'offre_id',
         'statut'
     ];
 
-    public function candidat()
+    public function user()
     {
-        return $this->belongsTo(User::class,'candidat_id');
+        return $this->belongsTo(User::class);
     }
 
     public function offre()

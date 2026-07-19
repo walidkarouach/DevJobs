@@ -23,12 +23,12 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
+            UserSeeder::class,
             CompetenceSeeder::class,
             EntrepriseSeeder::class,
             OffreSeeder::class,
             CandidatureSeeder::class,
+            AdminSeeder::class,
         ]);
-
-        $this->call(AdminSeeder::class);
     }
 }

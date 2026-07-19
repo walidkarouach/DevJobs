@@ -58,7 +58,7 @@ class User extends Authenticatable
     // Un candidat possède plusieurs candidatures
     public function candidatures()
     {
-        return $this->hasMany(Candidature::class,'candidat_id');
+        return $this->hasMany(Candidature::class);
     }
 
     // Les compétences d'un candidat

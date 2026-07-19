@@ -5,83 +5,78 @@ namespace App\Http\Controllers;
 use App\Models\Candidature;
 use App\Models\Offre;
 use App\Http\Requests\CandidatureRequest;
-use Illuminate\Http\Request;
+use App\Http\Requests\StatutRequest;
 
 class CandidatureController extends Controller
 {
-    // Candidate postule à une offre
-    public function store(CandidatureRequest $request)
+    // Le candidat postule à une offre
+    public function store(CandidatureRequest $request, Offre $offre)
     {
-        $offre = Offre::findOrFail($request->offre_id);
-
-        // Vérifier si le candidat a déjà postulé
-        $exists = Candidature::where('candidat_id', auth()->id())
+        $dejaPostule = Candidature::where('user_id', auth()->id())
             ->where('offre_id', $offre->id)
             ->exists();
 
-        if ($exists) {
+        if ($dejaPostule) {
             return response()->json([
                 'message' => 'Vous avez déjà postulé à cette offre.'
             ], 409);
         }
 
         $candidature = Candidature::create([
-            'candidat_id' => auth()->id(),
+            'user_id' => auth()->id(),
             'offre_id' => $offre->id,
-            'statut' => 'en_attente'
+            'statut' => 'en_attente',
         ]);
 
         return response()->json([
             'message' => 'Candidature envoyée avec succès.',
-            'candidature' => $candidature
+            'candidature' => $candidature,
         ], 201);
     }
 
-    // Candidate : voir ses candidatures
-    public function mesCandidatures()
+    // Liste des candidatures visibles selon le rôle connecté
+    public function index()
     {
-        return response()->json(
-            Candidature::with('offre')
-                ->where('candidat_id', auth()->id())
-                ->get()
-        );
-    }
+        $user = auth()->user();
 
-    // Entreprise : voir les candidatures reçues
-    public function candidaturesRecues()
-    {
-        return response()->json(
-            Candidature::with(['candidat', 'offre'])
-                ->whereHas('offre.entreprise', function ($query) {
-                    $query->where('user_id', auth()->id());
+        if ($user->role === 'candidate') {
+            // Le candidat ne voit que ses propres candidatures
+            $candidatures = Candidature::with('offre.entreprise')
+                ->where('user_id', $user->id)
+                ->get();
+        } elseif ($user->role === 'entreprise') {
+            // L'entreprise ne voit que les candidatures reçues sur ses offres
+            $candidatures = Candidature::with('user', 'offre')
+                ->whereHas('offre.entreprise', function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
                 })
-                ->get()
-        );
+                ->get();
+        } else {
+            // L'admin voit tout
+            $candidatures = Candidature::with('user', 'offre.entreprise')->get();
+        }
+
+        return response()->json($candidatures);
     }
 
-    // Entreprise/Admin : modifier le statut
-    public function updateStatut(Request $request, Candidature $candidature)
+    // L'entreprise (propriétaire de l'offre) ou l'admin change le statut
+    public function updateStatut(StatutRequest $request, Candidature $candidature)
     {
-        $request->validate([
-            'statut' => 'required|in:acceptée,refusée'
-        ]);
+        $user = auth()->user();
 
-        if (
-            auth()->user()->role !== 'admin' &&
-            $candidature->offre->entreprise->user_id != auth()->id()
-        ) {
+        if ($user->role !== 'admin' && $candidature->offre->entreprise->user_id !== $user->id) {
             return response()->json([
                 'message' => 'Accès refusé.'
             ], 403);
         }
 
         $candidature->update([
-            'statut' => $request->statut
+            'statut' => $request->statut,
         ]);
 
         return response()->json([
-            'message' => 'Statut mis à jour.',
-            'candidature' => $candidature
+            'message' => 'Statut de la candidature mis à jour.',
+            'candidature' => $candidature,
         ]);
     }
 }

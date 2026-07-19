@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Offre;
 use App\Models\Entreprise;
 use App\Http\Requests\OffreRequest;
+use Illuminate\Http\Request;
 
 class OffreController extends Controller
 {
@@ -12,7 +13,7 @@ class OffreController extends Controller
     public function index()
     {
         return response()->json(
-            Offre::with('entreprise')->latest()->paginate(10)
+            Offre::with('entreprise', 'competences')->get()
         );
     }
 
@@ -20,7 +21,7 @@ class OffreController extends Controller
     public function show(Offre $offre)
     {
         return response()->json(
-            $offre->load('entreprise')
+            $offre->load('entreprise', 'competences')
         );
     }
 
@@ -42,9 +43,11 @@ class OffreController extends Controller
             'type_contrat' => $request->type_contrat,
         ]);
 
+        $offre->competences()->attach($request->input('competences', []));
+
         return response()->json([
             'message' => 'Offre créée avec succès.',
-            'offre' => $offre
+            'offre' => $offre->load('competences')
         ], 201);
     }
 
@@ -60,15 +63,15 @@ class OffreController extends Controller
             ], 403);
         }
 
-        $offre->update([
-            'titre' => $request->titre,
-            'description' => $request->description,
-            'type_contrat' => $request->type_contrat,
-        ]);
+        $offre->update($request->safe()->except('competences'));
+
+        if ($request->has('competences')) {
+            $offre->competences()->sync($request->input('competences', []));
+        }
 
         return response()->json([
             'message' => 'Offre modifiée.',
-            'offre' => $offre
+            'offre' => $offre->load('competences')
         ]);
     }
 
@@ -89,5 +92,29 @@ class OffreController extends Controller
         return response()->json([
             'message' => 'Offre supprimée.'
         ]);
+    }
+
+    // Recherche d'offres avec filtres combinables : titre, entreprise, compétence
+    public function search(Request $request)
+    {
+        $query = Offre::with('entreprise', 'competences');
+
+        if ($request->filled('titre')) {
+            $query->where('titre', 'like', '%' . $request->input('titre') . '%');
+        }
+
+        if ($request->filled('entreprise')) {
+            $query->whereHas('entreprise', function ($q) use ($request) {
+                $q->where('nom', 'like', '%' . $request->input('entreprise') . '%');
+            });
+        }
+
+        if ($request->filled('competence')) {
+            $query->whereHas('competences', function ($q) use ($request) {
+                $q->where('nom', 'like', '%' . $request->input('competence') . '%');
+            });
+        }
+
+        return response()->json($query->get());
     }
 }

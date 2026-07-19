@@ -25,4 +25,9 @@ class Offre extends Model
     {
         return $this->hasMany(Candidature::class);
     }
+
+    public function competences()
+    {
+        return $this->belongsToMany(Competence::class);
+    }
 }
